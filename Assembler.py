@@ -6,6 +6,8 @@ from SymbolTable import SymbolTable
 
 if __name__ == '__main__':
     input = sys.argv[1]
+
+    #First pass
     f = Parser(input)
     c = Code()
     s = SymbolTable()
@@ -22,7 +24,7 @@ if __name__ == '__main__':
             # Get the symbol for the L command
             symbol = f.get_symbol(current)
 
-            # Get the address of next command
+            # Get the address of next command and store it in the symbolTable
             address = instruct_counter
             s.addEntry(symbol, address)
             f.advance()
@@ -34,10 +36,9 @@ if __name__ == '__main__':
     # Second Pass
     # Reset Parser object
     f = Parser(input)
-
     with open(sys.argv[2], 'w') as test:
 
-        # Initialize starting variable address space
+        # Initialize variable address space
         var_address = 16
 
         while f.hasMoreCommands():
@@ -54,9 +55,10 @@ if __name__ == '__main__':
                 if symbol.isnumeric():
                     test.write(c.encode_symbol(symbol))
                     test.write('\n')
+
                 # If not, check if if the symbol is in the symbol table.
                 else:
-                    # If it is, it's an L command and it'll already be in symbol-table
+                    # If it is, it's an L command or previously-declared variable and it'll already be in symbol-table
                     if s.contains(symbol):
                         address = s.getAddress(symbol)
 
@@ -67,7 +69,7 @@ if __name__ == '__main__':
                         test.write(address)
                         test.write('\n')
 
-                    # If not, then it's a variable and assign it the next available address in variable address space
+                    # If not, then it's a new variable, so assign it the next available address in variable address space
                     else:
                         s.addEntry(symbol, var_address)
                         address = s.getAddress(symbol)
@@ -82,7 +84,7 @@ if __name__ == '__main__':
                         # Increment var_address for next unassigned variable
                         var_address += 1
 
-                        # If current command is C command:
+            # If current command is C command:
             elif f.commandType(current) == 'C_COMMAND':
                 dest = f.get_dest(current)
                 dest = c.encode_dest(dest)
